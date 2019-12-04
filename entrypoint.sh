@@ -13,11 +13,12 @@ $(npm bin)/eslint --version
 if [ "${INPUT_REPORTER}" == 'github-pr-review' ]; then
   # Use jq and github-pr-review reporter to format result to include link to rule page.
   $(npm bin)/eslint -f="json" ${INPUT_ESLINT_FLAGS:-'.'} \
-    | tee | jq -r '.[] | {filePath: .filePath, messages: .messages[]} | "\(.filePath):\(.messages.line):\(.messages.column):\(.messages.message) [\(.messages.ruleId)](https://eslint.org/docs/rules/\(.messages.ruleId))"' \
-    | reviewdog -efm="%f:%l:%c:%m" -name="eslint" -reporter=github-pr-review -level="${INPUT_LEVEL}"
+    | jq -r '.[] | {filePath: .filePath, messages: .messages[]} | "\(.filePath):\(.messages.line):\(.messages.column):\(.messages.message) [\(.messages.ruleId)](https://eslint.org/docs/rules/\(.messages.ruleId))"' \
+    | cat
+    #| reviewdog -efm="%f:%l:%c:%m" -name="eslint" -reporter=github-pr-review -level="${INPUT_LEVEL}"
 else
   echo "got here"
   # github-pr-check,github-check (GitHub Check API) doesn't support markdown annotation.
   $(npm bin)/eslint -f="stylish" ${INPUT_ESLINT_FLAGS:-'.'} \
-    | tee | reviewdog -f="eslint" -reporter="${INPUT_REPORTER:-'github-pr-check'}" -level="${INPUT_LEVEL}"
+    | reviewdog -f="eslint" -reporter="${INPUT_REPORTER:-'github-pr-check'}" -level="${INPUT_LEVEL}"
 fi
